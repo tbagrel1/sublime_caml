@@ -4,8 +4,6 @@
 """Caml Light interpreter written in Python 3 in order to get the output of
 Caml Light programs as it was launched with the official interpreter."""
 
-# GIT VERSION
-
 import click
 import subprocess
 import sys
@@ -84,13 +82,19 @@ def run(in_path, out_file, show, debug):
 @click.argument("in-path",
                 type=click.Path(
                     exists=True, file_okay=True, dir_okay=False, readable=True,
-                    resolve_path=True))
-@click.option("--out-file", "-o", type=click.File(mode="w", encoding="utf-8"))
-@click.option("--run/--update", default=True)
-@click.option("--show/--no-show", default=True)
-@click.option("--debug/--no-debug", default=False)
+                    resolve_path=True),
+                help="Path to the Caml Light file to run.")
+@click.option("--out-file", "-o", type=click.File(mode="w", encoding="utf-8"),
+              help="Optional file where output will be written.")
+@click.option("--run/--update", default=True,
+              help="Run the specified file or update this script.")
+@click.option("--show/--hide", default=True,
+              help="Show or hide the Caml Light output.")
+@click.option("--debug/--no-debug", default=False,
+              help="Show or hide debug information.")
 def main(in_path, out_file, run, show, debug):
-    """Launcher."""
+    """Caml Light interpreter written in Python 3 in order to get the output of
+    Caml Light programs as it was launched with the official interpreter."""
     if not run:
         update(debug)
     else:
