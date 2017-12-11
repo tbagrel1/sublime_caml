@@ -4,8 +4,6 @@
 """Caml Light interpreter written in Python 3 in order to get the output of
 Caml Light programs as it was launched with the official interpreter."""
 
-# GIT VERSION
-
 import click
 import subprocess
 import sys
@@ -96,5 +94,3 @@ def main(in_path, out_file, run, show, debug):
     else:
         run(in_path, out_file, show, debug)
 
-if __name__ == "__main__":
-    main()
