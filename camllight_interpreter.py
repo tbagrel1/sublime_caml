@@ -8,6 +8,7 @@ import click
 import subprocess
 import sys
 import os
+import random
 
 INTERPRETER = "camllight"
 TEMP_DIR = "/tmp/"
@@ -17,12 +18,19 @@ ERROR_MSG = "\n=== ERRORS ===\n"
 SCRIPT_PATH = sys.argv[0]
 CLEAN = True
 ENC = "utf-8"
+ID_LENGTH = 5
 
 def update(debug):
     """Update the current script by downloading the new one from GitHub."""
     # Downloading
     try:
-        subprocess.run("wget \"{}\" -P \"{}\"".format(GIT_LINK, TEMP_DIR),
+        random_id = ""
+        for _ in range(ID_LENGTH):
+            random_id += str(random.randint(0, 9))
+        update_name = "camllight_" + random_id
+        subprocess.run("wget \"{}\" -O \"{}\""
+                       .format(GIT_LINK,
+                               os.path.join(TEMP_DIR, update_name)),
                        shell=True, check=True, stderr=subprocess.PIPE,
                        encoding=ENC)
     except subprocess.CalledProcessError as e:
@@ -35,7 +43,7 @@ def update(debug):
     try:
         subprocess.run("mv \"{}\" \"{}\""
                        .format(
-                           os.path.join(TEMP_DIR, "camllight_interpreter.py"),
+                           os.path.join(TEMP_DIR, update_name),
                            SCRIPT_PATH),
                        shell=True, check=True,
                        stderr=subprocess.PIPE, encoding=ENC)
@@ -86,25 +94,25 @@ def camlrun(in_path, out_file, show, debug):
         return False
 
 @click.command()
-@click.argument("in-path",
-                type=click.Path(
-                    exists=True, file_okay=True, dir_okay=False, readable=True,
-                    resolve_path=True))
+@click.option("--in-path", "-i",
+              type=click.Path(
+                  exists=True, file_okay=True, dir_okay=False, readable=True,
+                  resolve_path=True))
 @click.option("--out-file", "-o", type=click.File(mode="w", encoding=ENC),
               help="Optional file where output will be written.")
-@click.option("--run/--update", default=True,
-              help="Run the specified file or update this script.")
 @click.option("--show/--hide", default=True,
               help="Show or hide the Caml Light output.")
 @click.option("--debug/--no-debug", default=False,
               help="Show or hide debug information.")
-def main(in_path, out_file, run, show, debug):
+def main(in_path, out_file, show, debug):
     """Caml Light interpreter written in Python 3 in order to get the output of
     Caml Light programs as it was launched with the official interpreter."""
-    if not run:
+    if not in_path:
         update(debug)
     else:
         camlrun(in_path, out_file, show, debug)
 
 if __name__ == "__main__":
     main()
+
+##

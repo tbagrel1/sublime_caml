@@ -7,6 +7,7 @@ Caml Light programs as it was launched with the official interpreter."""
 import click
 import subprocess
 import sys
+import os
 
 INTERPRETER = "camllight"
 TEMP_DIR = "/tmp/"
@@ -21,7 +22,7 @@ def update(debug):
     """Update the current script by downloading the new one from GitHub."""
     # Downloading
     try:
-        subprocess.run("cd \"{}\" && wget \"{}\"".format(TEMP_DIR, GIT_LINK),
+        subprocess.run("wget \"{}\" -P \"{}\"".format(GIT_LINK, TEMP_DIR),
                        shell=True, check=True, stderr=subprocess.PIPE,
                        encoding=ENC)
     except subprocess.CalledProcessError as e:
@@ -32,8 +33,11 @@ def update(debug):
         return False
     # Move (may need superuser privileges)
     try:
-        subprocess.run("cd {} && mv \"camllight_interpreter.py\" \"{}\""
-                       .format(TEMP_DIR, SCRIPT_PATH), shell=True, check=True,
+        subprocess.run("mv \"{}\" \"{}\""
+                       .format(
+                           os.path.join(TEMP_DIR, "camllight_interpreter.py"),
+                           SCRIPT_PATH),
+                       shell=True, check=True,
                        stderr=subprocess.PIPE, encoding=ENC)
     except subprocess.CalledProcessError as e:
         click.echo("\nUnable to move the new script to the current script "
