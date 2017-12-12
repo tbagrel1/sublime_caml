@@ -1,8 +1,0 @@
-a : int = 2
-
-=== ERRORS ===
-
-Toplevel input:
->        | n -> n * fact (n - 1);;
->                   ^^^^
-The value identifier fact is unbound.

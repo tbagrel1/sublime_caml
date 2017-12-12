@@ -13,7 +13,7 @@ import random
 INTERPRETER = "camllight"
 TEMP_DIR = "/tmp/"
 GIT_LINK = ("https://raw.githubusercontent.com/tbagrel1/" +
-            "sublime_camllight/master/camllight_interpreter.py")
+            "sublime_caml/master/camllight_interpreter")
 ERROR_MSG = "\n=== ERRORS ===\n"
 SCRIPT_PATH = sys.argv[0]
 CLEAN = True
@@ -36,6 +36,18 @@ def update(debug):
     except subprocess.CalledProcessError as e:
         click.echo("\nUnable to retrieve the new version of the script. "
                    "Please try again later.")
+        if debug:
+            click.echo("Original error: [{}]".format(e.stderr))
+        return False
+    # Allow execution (may need superuser privileges)
+    try:
+        subprocess.run("chmod +x \"{}\""
+                       .format(os.path.join(TEMP_DIR, update_name)),
+                       shell=True, check=True,
+                       stderr=subprocess.PIPE, encoding=ENC)
+    except subprocess.CalledProcessError as e:
+        click.echo("\nUnable to make the new version executable. Please "
+                   "re-run the script with enough privileges.")
         if debug:
             click.echo("Original error: [{}]".format(e.stderr))
         return False
