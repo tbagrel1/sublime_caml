@@ -100,7 +100,7 @@ def camlrun(in_path, out_file, show, debug):
     except Exception as e:
         click.echo("\nUnexpected error happened.")
         if debug:
-            click.echo("Original error: [{}]".format(e.decode))
+            click.echo("Original error: [{}]".format(e))
         return False
 
 @click.command()
