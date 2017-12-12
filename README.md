@@ -6,5 +6,5 @@ Caml Light build for Sublime Text 3
 Run
 
 ```bash
-sudo ./install.sh
+sudo bash install.sh
 ```
