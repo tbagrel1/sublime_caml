@@ -126,5 +126,3 @@ def main(in_path, out_file, show, debug):
 
 if __name__ == "__main__":
     main()
-
-##
