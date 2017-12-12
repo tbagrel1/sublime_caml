@@ -31,25 +31,24 @@ def update(debug):
         subprocess.run("wget \"{}\" -O \"{}\""
                        .format(GIT_LINK,
                                os.path.join(TEMP_DIR, update_name)),
-                       shell=True, check=True, stderr=subprocess.PIPE,
-                       encoding=ENC)
+                       shell=True, check=True, stderr=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
         click.echo("\nUnable to retrieve the new version of the script. "
                    "Please try again later.")
         if debug:
-            click.echo("Original error: [{}]".format(e.stderr))
+            click.echo("Original error: [{}]".format(e.stderr.decode(ENC)))
         return False
     # Allow execution (may need superuser privileges)
     try:
         subprocess.run("chmod +x \"{}\""
                        .format(os.path.join(TEMP_DIR, update_name)),
                        shell=True, check=True,
-                       stderr=subprocess.PIPE, encoding=ENC)
+                       stderr=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
         click.echo("\nUnable to make the new version executable. Please "
                    "re-run the script with enough privileges.")
         if debug:
-            click.echo("Original error: [{}]".format(e.stderr))
+            click.echo("Original error: [{}]".format(e.stderr.decode(ENC)))
         return False
     # Move (may need superuser privileges)
     try:
@@ -58,13 +57,13 @@ def update(debug):
                            os.path.join(TEMP_DIR, update_name),
                            SCRIPT_PATH),
                        shell=True, check=True,
-                       stderr=subprocess.PIPE, encoding=ENC)
+                       stderr=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
         click.echo("\nUnable to move the new script to the current script "
                    "directory. Please re-run the script with enough "
                    "privileges.")
         if debug:
-            click.echo("Original error: [{}]".format(e.stderr))
+            click.echo("Original error: [{}]".format(e.stderr.decode(ENC)))
         return False
     click.echo("\nUpdate was successful!")
     return True
@@ -81,13 +80,12 @@ def camlrun(in_path, out_file, show, debug):
     """Run the specified Caml Light file."""
     try:
         obj = None
-        with open(in_path, "r", encoding=ENC) as in_file:
+        with open(in_path, "r") as in_file:
             obj = subprocess.run(["camllight"], stdin=in_file,
                                  stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE,
-                                 encoding=ENC)
-        stdout = obj.stdout
-        stderr = obj.stderr
+                                 stderr=subprocess.PIPE)
+        stdout = obj.stdout.decode(ENC)
+        stderr = obj.stderr.decode(ENC)
         if CLEAN:
             stdout = clean_stdout(stdout)
             stderr = clean_stderr(stderr)
