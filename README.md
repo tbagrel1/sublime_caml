@@ -8,7 +8,7 @@ Caml build for Sublime Text 3
 Open a terminal and type:
 
 ```bash
-cd /tmp && sudo apt-get install unzip && wget https://github.com/tbagrel1/sublime_caml/archive/master.zip && unzip master.zip && cd sublime_caml-master && sudo bash install.sh && mv CamlLight.sublime-build ~/.config/sublime-text-3/Packages/User/CamlLight.sublime-build
+cd /tmp && sudo apt-get install unzip && wget https://github.com/tbagrel1/sublime_caml/archive/dev.zip && unzip dev.zip && cd sublime_caml-dev && sudo bash install.sh && mv CamlLight.sublime-build ~/.config/sublime-text-3/Packages/User/CamlLight.sublime-build
 ```
 
 ### Update

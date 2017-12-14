@@ -4,77 +4,126 @@
 """Caml Light interpreter written in Python 3 in order to get the output of
 Caml Light programs as it was launched with the official interpreter."""
 
-import click
-import subprocess
-import sys
 import os
 import random
+import shutil
+import socket
+import stat
+import subprocess
+import urllib.request
+
+import click
+
+# Global vars for run part
 
 INTERPRETER = "camllight"
-TEMP_DIR = "/tmp/"
-GIT_LINK = ("https://raw.githubusercontent.com/tbagrel1/" +
-            "sublime_caml/master/camllight_interpreter")
 ERROR_MSG = "\n=== ERRORS ===\n"
-SCRIPT_PATH = sys.argv[0]
 CLEAN = True
 ENC = "utf-8"
+
+# Global vars for update part
+
+SCRIPT_PATH = os.path.abspath(os.path.realpath(__file__))
+(SCRIPT_DIR, SCRIPT_NAME) = os.path.split(SCRIPT_PATH)
+OS = os.name
+POSIX = "posix"
+WINDOWS = "nt"
+
+if OS == POSIX:
+    TEMP_DIR = "/tmp/"
+elif OS == WINDOWS:
+    TEMP_DIR = "C:/"
+else:
+    # Current directory
+    TEMP_DIR = SCRIPT_DIR
+GIT_LINK = ("https://raw.githubusercontent.com/tbagrel1/" +
+            "sublime_caml/dev/camllight_interpreter")
+TEMP_FILE_PREFIX = "camllight_"
 ID_LENGTH = 5
+TIMEOUT = 20
+
 
 def update(debug):
     """Update the current script by downloading the new one from GitHub."""
+
+    def add_exec_permission(path):
+        """Add exec permission from the specified path, while keeping all
+        other permissions unchanged.
+        (source: https://stackoverflow.com/a/38511116)"""
+        current_permissions = stat.S_IMODE(os.lstat(path).st_mode)
+
+        USER_EXEC = stat.S_IXUSR
+        GROUP_EXEC = stat.S_IXGRP
+        OTHER_EXEC = stat.S_IXOTH
+        EXEC = USER_EXEC & GROUP_EXEC & OTHER_EXEC
+
+        os.chmod(path, current_permissions | EXEC)
+
+    random_id = ""
+    for _ in range(ID_LENGTH):
+        random_id += str(random.randint(0, 9))
+    update_name = TEMP_FILE_PREFIX + random_id
+    temp_file_path = os.path.normpath(os.path.join(TEMP_DIR, update_name))
     # Downloading
     try:
-        random_id = ""
-        for _ in range(ID_LENGTH):
-            random_id += str(random.randint(0, 9))
-        update_name = "camllight_" + random_id
-        subprocess.run("wget \"{}\" -O \"{}\""
-                       .format(GIT_LINK,
-                               os.path.join(TEMP_DIR, update_name)),
-                       shell=True, check=True, stderr=subprocess.PIPE)
-    except subprocess.CalledProcessError as e:
-        click.echo("\nUnable to retrieve the new version of the script. "
-                   "Please try again later.")
+        temp_file = open(temp_file_path, "wb")
+        try:
+            new_script_obj = urllib.request.urlopen(GIT_LINK,
+                                                    timeout=TIMEOUT).read()
+            temp_file.write(new_script_obj)
+        except (urllib.request.HTTPError, urllib.request.URLError,
+                socket.timeout) as e:
+            click.echo("\nUnable to download the new version of the script. "
+                       "Please try again later.")
+            if debug:
+                click.echo("Original error: [{]]".format(e))
+            try:
+                temp_file.close()
+            except:
+                pass
+            return False
+    except OSError as e:
+        click.echo("\nUnable to create a temporary file.")
         if debug:
-            click.echo("Original error: [{}]".format(e.stderr.decode(ENC)))
+            click.echo("Original error: [{}]".format(e))
         return False
     # Allow execution (may need superuser privileges)
     try:
-        subprocess.run("chmod +x \"{}\""
-                       .format(os.path.join(TEMP_DIR, update_name)),
-                       shell=True, check=True,
-                       stderr=subprocess.PIPE)
-    except subprocess.CalledProcessError as e:
+        add_exec_permission(temp_file_path)
+    except OSError as e:
         click.echo("\nUnable to make the new version executable. Please "
                    "re-run the script with enough privileges.")
         if debug:
-            click.echo("Original error: [{}]".format(e.stderr.decode(ENC)))
+            click.echo("Original error: [{}]".format(e))
         return False
     # Move (may need superuser privileges)
     try:
-        subprocess.run("mv \"{}\" \"{}\""
-                       .format(
-                           os.path.join(TEMP_DIR, update_name),
-                           SCRIPT_PATH),
-                       shell=True, check=True,
-                       stderr=subprocess.PIPE)
-    except subprocess.CalledProcessError as e:
+        shutil.move(SCRIPT_PATH,
+                    os.path.normpath(os.path.join(TEMP_DIR, SCRIPT_NAME)))
+        shutil.move(temp_file_path,
+                    SCRIPT_PATH)
+    except shutil.Error as e:
         click.echo("\nUnable to move the new script to the current script "
                    "directory. Please re-run the script with enough "
                    "privileges.")
         if debug:
-            click.echo("Original error: [{}]".format(e.stderr.decode(ENC)))
+            click.echo("Original error: [{}]".format(e))
         return False
-    click.echo("\nUpdate was successful!")
+    click.echo("\n--------------------------"
+               "\n| Update was successful! |"
+               "\n--------------------------")
     return True
+
 
 def clean_stdout(text):
     """Clean the stdout given by the Caml Light interpreter."""
     return "\n".join([line.strip("#") for line in text.split("\n")[2:]])
 
+
 def clean_stderr(text):
     """Clean the stderr given by the Caml Light interpreter."""
     return text
+
 
 def camlrun(in_path, out_file, show, debug):
     """Run the specified Caml Light file."""
@@ -103,6 +152,7 @@ def camlrun(in_path, out_file, show, debug):
             click.echo("Original error: [{}]".format(e))
         return False
 
+
 @click.command()
 @click.option("--in-path", "-i",
               type=click.Path(
@@ -121,6 +171,7 @@ def main(in_path, out_file, show, debug):
         update(debug)
     else:
         camlrun(in_path, out_file, show, debug)
+
 
 if __name__ == "__main__":
     main()
