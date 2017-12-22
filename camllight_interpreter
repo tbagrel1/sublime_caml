@@ -55,7 +55,7 @@ def update(debug):
         USER_EXEC = stat.S_IXUSR
         GROUP_EXEC = stat.S_IXGRP
         OTHER_EXEC = stat.S_IXOTH
-        EXEC = USER_EXEC & GROUP_EXEC & OTHER_EXEC
+        EXEC = USER_EXEC | GROUP_EXEC | OTHER_EXEC
 
         os.chmod(path, current_permissions | EXEC)
 
