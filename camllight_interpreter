@@ -37,7 +37,7 @@ else:
     # Current directory
     TEMP_DIR = SCRIPT_DIR
 GIT_LINK = ("https://raw.githubusercontent.com/tbagrel1/" +
-            "sublime_caml/dev/camllight_interpreter")
+            "sublime_caml/master/camllight_interpreter")
 TEMP_FILE_PREFIX = "camllight_"
 ID_LENGTH = 5
 TIMEOUT = 20
