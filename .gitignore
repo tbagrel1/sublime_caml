@@ -1,1 +1,4 @@
 pouet.ml
+**/*.directory
+.idea
+
